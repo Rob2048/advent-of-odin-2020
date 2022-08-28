@@ -1,0 +1,63 @@
+package main
+
+import "core:fmt"
+import "core:os"
+import "core:strings"
+import "core:strconv"
+
+find_seat_id :: proc(pass: string) -> (int) {
+	current_min: int = 0
+	current_max: int = 127
+	for char in pass[0:7] {
+		if (char == 'F') {
+			diff := current_max - current_min
+			current_max -= diff / 2 + 1
+		} else if (char == 'B') {
+			diff := current_max - current_min
+			current_min += diff / 2 + 1
+		}
+	}
+
+	row := current_min
+
+	current_min = 0
+	current_max = 7
+	for char in pass[7:] {
+		if (char == 'L') {
+			diff := current_max - current_min
+			current_max -= diff / 2 + 1
+		} else if (char == 'R') {
+			diff := current_max - current_min
+			current_min += diff / 2 + 1
+		}
+	}
+
+	column := current_min
+	seat_id := row * 8 + column
+	fmt.println("Pass:", pass, row, column, seat_id)
+
+	return seat_id
+}
+
+main :: proc() {
+	// file_bytes, file_success := os.read_entire_file_from_filename("../example.txt")
+	file_bytes, file_success := os.read_entire_file_from_filename("../puzzle.txt")
+	assert(file_success)
+	defer delete(file_bytes)
+
+	// example := "BBFFBBFRLL"
+	// find_seat_id(example)
+
+	highest_seat_id := 0
+	
+	line_iter := string(file_bytes)
+	for line in strings.split_lines_iterator(&line_iter) {
+		seat_id := find_seat_id(line)
+
+		if seat_id > highest_seat_id {
+			highest_seat_id = seat_id
+		}
+	}
+
+	fmt.println("Highest seat id", highest_seat_id)
+}
